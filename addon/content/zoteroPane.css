@@ -1,3 +1,48 @@
 .makeItRed {
   background-color: tomato;
 }
+
+/* Generic resizable popup helpers for image-based popups */
+.addon-popup-resizable {
+  /* Defaults come from CSS vars set by hooks */
+  width: var(--addon-popup-width, 480px);
+  height: var(--addon-popup-height, 320px);
+  max-width: 95vw;
+  max-height: 90vh;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+.addon-popup-resizable img,
+.addon-popup-resizable canvas,
+.addon-popup-resizable picture,
+.addon-popup-resizable svg {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Optional handle if the container supports CSS resize */
+.addon-popup-resizable.resizable {
+  resize: both; /* Works for html elements, not XUL */
+}
+
+/* PDF viewer hover preview popup (HTML)
+   Support both markup variants: with/without .inner wrapper */
+.view-popup.preview-popup,
+.view-popup.preview-popup .inner {
+  width: var(--addon-popup-width, 480px) !important;
+  height: var(--addon-popup-height, 320px) !important;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.view-popup.preview-popup img,
+.view-popup.preview-popup .inner img {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain;
+  display: block;
+}

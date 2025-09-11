@@ -16,6 +16,8 @@ export type FluentMessageId =
   | 'pref-enable'
   | 'pref-help'
   | 'pref-input'
+  | 'pref-popup-height'
+  | 'pref-popup-width'
   | 'pref-title'
   | 'prefs-table-detail'
   | 'prefs-table-title'
