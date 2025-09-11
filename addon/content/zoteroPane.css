@@ -31,10 +31,14 @@
    Support both markup variants: with/without .inner wrapper */
 .view-popup.preview-popup,
 .view-popup.preview-popup .inner {
-  width: var(--addon-popup-width, 480px) !important;
+  width: var(--addon-popup-width, 480px);
+  /* allow user drag-resize */
+  resize: both;
   /* don't force a fixed height; allow scroll with a cap */
   max-width: 95vw;
   max-height: var(--addon-popup-height, 90vh);
+  min-width: 240px;
+  min-height: 120px;
   overflow: auto;
   box-sizing: border-box;
 }

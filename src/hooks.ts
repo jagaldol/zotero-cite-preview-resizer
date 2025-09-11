@@ -1,5 +1,5 @@
 import { registerPrefsScripts } from "./modules/preferenceScript";
-import { getPref } from "./utils/prefs";
+import { getPref, setPref } from "./utils/prefs";
 
 async function onStartup() {
   await Promise.all([
@@ -28,12 +28,43 @@ async function onStartup() {
       const styleId = "__addon_popup_style";
       let style = doc.getElementById(styleId) as HTMLStyleElement | null;
       const css = `
-        .view-popup.preview-popup, .view-popup.preview-popup .inner {\n\
-          width: ${width}px !important;\n\
-          max-width: 95vw; max-height: ${height}px; overflow: auto; box-sizing: border-box;\n\
+        /* Resizable popup container: start from prefs, allow drag-resize */\n\
+        .view-popup.preview-popup {\n\
+          width: var(--addon-popup-width, ${width}px);\n\
+          height: var(--addon-popup-height, ${height}px);\n\
+          resize: both;\n\
+          max-width: 95vw;\n\
+          max-height: 95vh;\n\
+          min-width: 240px;\n\
+          min-height: 120px;\n\
+          padding: 0;\n\
+          overflow: auto; /* enable vertical scroll when content taller */\n\
+          box-sizing: border-box;\n\
         }\n\
-        .view-popup.preview-popup img, .view-popup.preview-popup .inner img {\n\
-          width: 100% !important; height: auto !important; display: block;\n\
+        /* Inner spans container width, natural height for scrolling */\n\
+        .view-popup.preview-popup .inner {\n\
+          width: 100%;\n\
+          height: auto;\n\
+          max-height: 100%;\n\
+          padding: 0;\n\
+          margin: 0;\n\
+          overflow: auto;\n\
+          box-sizing: border-box;\n\
+          display: block;\n\
+        }\n\
+        /* Media: fill width, keep aspect ratio; overflow scrolls vertically */\n\
+        .view-popup.preview-popup > img,\n\
+        .view-popup.preview-popup > picture,\n\
+        .view-popup.preview-popup > canvas,\n\
+        .view-popup.preview-popup > svg,\n\
+        .view-popup.preview-popup .inner > img,\n\
+        .view-popup.preview-popup .inner > picture,\n\
+        .view-popup.preview-popup .inner > canvas,\n\
+        .view-popup.preview-popup .inner > svg {\n\
+          width: 100% !important;\n\
+          height: auto !important;\n\
+          max-width: 100% !important;\n\
+          display: block;\n\
         }`;
       if (!style) {
         style = doc.createElement("style");
@@ -43,6 +74,14 @@ async function onStartup() {
       } else if (style.textContent !== css) {
         style.textContent = css;
       }
+      // Ensure CSS variables are set on reader root to reflect preferences
+      const readerRoot = doc.documentElement as HTMLElement | null;
+      readerRoot?.style.setProperty("--addon-popup-width", `${width}px`);
+      readerRoot?.style.setProperty("--addon-popup-height", `${height}px`);
+      // Ensure CSS variables are present on the reader document
+      const rootEl = doc.documentElement as HTMLElement | null;
+      rootEl?.style.setProperty("--addon-popup-width", `${width}px`);
+      rootEl?.style.setProperty("--addon-popup-height", `${height}px`);
     };
 
     // Use Reader event to gain access to the reader's document
@@ -94,53 +133,7 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
     Zotero.debug?.(`Failed to apply popup size: ${e}`);
   }
 
-  // Directly resize preview popup (.view-popup.preview-popup[ .inner]) if present
-  try {
-    const doc = win.document;
-    const applySize = () => {
-      const width = getPref("popupWidth");
-      const height = getPref("popupHeight");
-      const innerList = doc.querySelectorAll<HTMLElement>(
-        ".view-popup.preview-popup .inner:not(.__addonSized)",
-      );
-      const containerList = doc.querySelectorAll<HTMLElement>(
-        ".view-popup.preview-popup:not(.__addonSized)",
-      );
-      // Prefer sizing inner; fallback to container when no inner exists
-      const targets: NodeListOf<HTMLElement> = (innerList.length
-        ? innerList
-        : containerList) as NodeListOf<HTMLElement>;
-      targets.forEach((el: HTMLElement) => {
-        el.style.setProperty("width", `${width}px`, "important");
-        // Do not force height; keep natural image height with scroll
-        el.classList.add("__addonSized");
-      });
-    };
-    applySize();
-    const mo = new win.MutationObserver((mutations: MutationRecord[]) => {
-      for (const m of mutations) {
-        if (m.type === "childList") {
-          applySize();
-        } else if (m.type === "attributes") {
-          const t = m.target as HTMLElement;
-          if (t.matches && t.matches(".view-popup.preview-popup .inner")) {
-            applySize();
-          }
-        }
-      }
-    });
-    mo.observe(doc, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-    // store observer to shut down later
-    (addon.data as any).__popupMO = (addon.data as any).__popupMO || new Map();
-    (addon.data as any).__popupMO.set(win, mo);
-  } catch (e) {
-    Zotero.debug?.(`Failed to observe preview popup: ${e}`);
-  }
+  // No JS-based resizing; rely on stylesheet definitions only
 }
 
 async function onMainWindowUnload(win: Window): Promise<void> {
