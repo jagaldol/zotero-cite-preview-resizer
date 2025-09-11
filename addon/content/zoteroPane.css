@@ -6,11 +6,10 @@
 .addon-popup-resizable {
   /* Defaults come from CSS vars set by hooks */
   width: var(--addon-popup-width, 480px);
-  height: var(--addon-popup-height, 320px);
   max-width: 95vw;
-  max-height: 90vh;
+  max-height: var(--addon-popup-height, 90vh);
   box-sizing: border-box;
-  overflow: auto;
+  overflow: auto; /* allow vertical scroll if content is taller */
 }
 
 .addon-popup-resizable img,
@@ -33,16 +32,15 @@
 .view-popup.preview-popup,
 .view-popup.preview-popup .inner {
   width: var(--addon-popup-width, 480px) !important;
-  height: var(--addon-popup-height, 320px) !important;
+  /* don't force a fixed height; allow scroll with a cap */
   max-width: 95vw;
-  max-height: 90vh;
-  overflow: hidden;
+  max-height: var(--addon-popup-height, 90vh);
+  overflow: auto;
   box-sizing: border-box;
 }
 .view-popup.preview-popup img,
 .view-popup.preview-popup .inner img {
-  max-width: 100% !important;
-  max-height: 100% !important;
-  object-fit: contain;
+  width: 100% !important;
+  height: auto !important;
   display: block;
 }

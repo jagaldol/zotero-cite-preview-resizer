@@ -30,11 +30,10 @@ async function onStartup() {
       const css = `
         .view-popup.preview-popup, .view-popup.preview-popup .inner {\n\
           width: ${width}px !important;\n\
-          height: ${height}px !important;\n\
-          max-width: 95vw; max-height: 90vh; overflow: hidden; box-sizing: border-box;\n\
+          max-width: 95vw; max-height: ${height}px; overflow: auto; box-sizing: border-box;\n\
         }\n\
         .view-popup.preview-popup img, .view-popup.preview-popup .inner img {\n\
-          width: 100% !important; height: 100% !important; object-fit: contain; display: block;\n\
+          width: 100% !important; height: auto !important; display: block;\n\
         }`;
       if (!style) {
         style = doc.createElement("style");
@@ -113,7 +112,7 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
       const targets = innerList.length ? innerList : containerList;
       targets.forEach((el) => {
         el.style.setProperty("width", `${width}px`, "important");
-        el.style.setProperty("height", `${height}px`, "important");
+        // Do not force height; keep natural image height with scroll
         el.classList.add("__addonSized");
       });
     };
