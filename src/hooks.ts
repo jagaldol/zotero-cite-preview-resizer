@@ -39,7 +39,7 @@ async function onStartup() {
         style = doc.createElement("style");
         style.id = styleId;
         style.textContent = css;
-        doc.documentElement.appendChild(style);
+        doc.documentElement?.appendChild(style);
       } else if (style.textContent !== css) {
         style.textContent = css;
       }
@@ -87,11 +87,9 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
     const doc = win.document;
     const width = getPref("popupWidth");
     const height = getPref("popupHeight");
-    doc.documentElement?.style.setProperty("--addon-popup-width", `${width}px`);
-    doc.documentElement?.style.setProperty(
-      "--addon-popup-height",
-      `${height}px`,
-    );
+    const rootEl = doc.documentElement as HTMLElement | null;
+    rootEl?.style.setProperty("--addon-popup-width", `${width}px`);
+    rootEl?.style.setProperty("--addon-popup-height", `${height}px`);
   } catch (e) {
     Zotero.debug?.(`Failed to apply popup size: ${e}`);
   }
@@ -109,15 +107,17 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
         ".view-popup.preview-popup:not(.__addonSized)",
       );
       // Prefer sizing inner; fallback to container when no inner exists
-      const targets = innerList.length ? innerList : containerList;
-      targets.forEach((el) => {
+      const targets: NodeListOf<HTMLElement> = (innerList.length
+        ? innerList
+        : containerList) as NodeListOf<HTMLElement>;
+      targets.forEach((el: HTMLElement) => {
         el.style.setProperty("width", `${width}px`, "important");
         // Do not force height; keep natural image height with scroll
         el.classList.add("__addonSized");
       });
     };
     applySize();
-    const mo = new win.MutationObserver((mutations) => {
+    const mo = new win.MutationObserver((mutations: MutationRecord[]) => {
       for (const m of mutations) {
         if (m.type === "childList") {
           applySize();
@@ -148,7 +148,10 @@ async function onMainWindowUnload(win: Window): Promise<void> {
     const mo = (addon.data as any).__popupMO?.get?.(win);
     mo?.disconnect?.();
     (addon.data as any).__popupMO?.delete?.(win);
-  } catch {}
+  } catch (e) {
+    // Swallow cleanup errors but log for diagnostics
+    Zotero.debug?.(`Failed to cleanup preview popup observer: ${e}`);
+  }
 }
 
 function onShutdown(): void {
