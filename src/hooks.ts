@@ -1,5 +1,5 @@
 import { registerPrefsScripts } from "./modules/preferenceScript";
-import { getPref, setPref } from "./utils/prefs";
+import { getPref } from "./utils/prefs";
 
 async function onStartup() {
   await Promise.all([
@@ -74,11 +74,7 @@ async function onStartup() {
       } else if (style.textContent !== css) {
         style.textContent = css;
       }
-      // Ensure CSS variables are set on reader root to reflect preferences
-      const readerRoot = doc.documentElement as HTMLElement | null;
-      readerRoot?.style.setProperty("--addon-popup-width", `${width}px`);
-      readerRoot?.style.setProperty("--addon-popup-height", `${height}px`);
-      // Ensure CSS variables are present on the reader document
+      // Apply CSS variables to the reader document element
       const rootEl = doc.documentElement as HTMLElement | null;
       rootEl?.style.setProperty("--addon-popup-width", `${width}px`);
       rootEl?.style.setProperty("--addon-popup-height", `${height}px`);
@@ -101,26 +97,6 @@ async function onStartup() {
 }
 
 async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
-  // Ensure stylesheet is loaded
-  try {
-    const doc = win.document;
-    const existed = doc.querySelector(
-      `link[href="chrome://${addon.data.config.addonRef}/content/zoteroPane.css"]`,
-    );
-    if (!existed) {
-      const styles = ztoolkit.UI.createElement(doc, "link", {
-        properties: {
-          type: "text/css",
-          rel: "stylesheet",
-          href: `chrome://${addon.data.config.addonRef}/content/zoteroPane.css`,
-        },
-      });
-      doc.documentElement?.appendChild(styles);
-    }
-  } catch (e) {
-    Zotero.debug?.(`Failed to inject stylesheet: ${e}`);
-  }
-
   // Apply popup sizing CSS variables to this window
   try {
     const doc = win.document;
@@ -132,19 +108,6 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
   } catch (e) {
     Zotero.debug?.(`Failed to apply popup size: ${e}`);
   }
-
-  // No JS-based resizing; rely on stylesheet definitions only
-}
-
-async function onMainWindowUnload(win: Window): Promise<void> {
-  try {
-    const mo = (addon.data as any).__popupMO?.get?.(win);
-    mo?.disconnect?.();
-    (addon.data as any).__popupMO?.delete?.(win);
-  } catch (e) {
-    // Swallow cleanup errors but log for diagnostics
-    Zotero.debug?.(`Failed to cleanup preview popup observer: ${e}`);
-  }
 }
 
 function onShutdown(): void {
@@ -154,26 +117,20 @@ function onShutdown(): void {
   delete Zotero[addon.data.config.addonInstance];
 }
 
-/**
- * This function is just an example of dispatcher for Notify events.
- * Any operations should be placed in a function to keep this funcion clear.
- */
+// Minimal stubs to satisfy template references
 async function onNotify(
-  event: string,
-  type: string,
-  ids: Array<string | number>,
-  extraData: { [key: string]: any },
+  _event: string,
+  _type: string,
+  _ids: Array<string | number>,
+  _extraData: { [key: string]: any },
 ) {
-  // Minimal: no notify handling
   return;
 }
 
-/**
- * This function is just an example of dispatcher for Preference UI events.
- * Any operations should be placed in a function to keep this funcion clear.
- * @param type event type
- * @param data event data
- */
+function onShortcuts(_type: string) {}
+
+function onDialogEvents(_type: string) {}
+/** Preference UI events */
 async function onPrefsEvent(type: string, data: { [key: string]: any }) {
   switch (type) {
     case "load":
@@ -184,14 +141,6 @@ async function onPrefsEvent(type: string, data: { [key: string]: any }) {
   }
 }
 
-function onShortcuts(type: string) {
-  // Minimal: no shortcuts registered
-}
-
-function onDialogEvents(type: string) {
-  // Minimal: no dialog helpers
-}
-
 // Add your hooks here. For element click, etc.
 // Keep in mind hooks only do dispatch. Don't add code that does real jobs in hooks.
 // Otherwise the code would be hard to read and maintain.
@@ -200,9 +149,8 @@ export default {
   onStartup,
   onShutdown,
   onMainWindowLoad,
-  onMainWindowUnload,
   onNotify,
-  onPrefsEvent,
   onShortcuts,
   onDialogEvents,
+  onPrefsEvent,
 };
