@@ -1,5 +1,6 @@
 import { registerPrefsScripts } from "./modules/preferenceScript";
 import { getPref } from "./utils/prefs";
+import { initLocale, getString } from "./utils/locale";
 
 async function onStartup() {
   await Promise.all([
@@ -8,11 +9,15 @@ async function onStartup() {
     Zotero.uiReadyPromise,
   ]);
 
+  // Initialize localization before using getString
+  initLocale();
+
   // Register a minimal Preferences pane without using examples
   Zotero.PreferencePanes.register({
     pluginID: addon.data.config.addonID,
     src: rootURI + "content/preferences.xhtml",
-    label: addon.data.config.addonName,
+    // Use localized title for the pane label
+    label: getString("pref-title"),
     image: `chrome://${addon.data.config.addonRef}/content/icons/favicon.png`,
   });
 

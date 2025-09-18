@@ -1,7 +1,4 @@
-pref-title = Addon Template Example
-pref-enable =
-    .label = Enable
-pref-input = Input
+pref-title = Preview Resizer
 pref-help = { $name } Build { $version } { $time }
 pref-popup-width = Popup width (px)
 pref-popup-height = Popup height (px)
