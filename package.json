@@ -1,24 +1,24 @@
 {
   "name": "zotero-cite-preview-resizer",
   "type": "module",
-  "version": "3.1.0",
+  "version": "1.0.0",
   "description": "Resize Zotero cite/preview popups with drag and prefs",
   "config": {
-    "addonName": "Cite Preview Resizer",
-    "addonID": "citepreviewresizer@local",
-    "addonRef": "citepreviewresizer",
-    "addonInstance": "CitePreviewResizer",
-    "prefsPrefix": "extensions.zotero.citepreviewresizer"
+    "addonName": "Zotero Cite Preview Resizer",
+    "addonID": "zoterocitepreviewresizer@local",
+    "addonRef": "zoterocitepreviewresizer",
+    "addonInstance": "ZoteroCitePreviewResizer",
+    "prefsPrefix": "extensions.zotero.zoterocitepreviewresizer"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/windingwind/zotero-plugin-template.git"
+    "url": "git+https://github.com/jagaldol/zotero-cite-preview-resizer.git"
   },
-  "author": "windingwind",
   "bugs": {
-    "url": "https://github.com/windingwind/zotero-plugin-template/issues"
+    "url": "https://github.com/jagaldol/zotero-cite-preview-resizer/issues"
   },
-  "homepage": "https://github.com/windingwind/zotero-plugin-template#readme",
+  "homepage": "https://github.com/jagaldol/zotero-cite-preview-resizer#readme",
+  "author": "jagaldol",
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "zotero-plugin serve",

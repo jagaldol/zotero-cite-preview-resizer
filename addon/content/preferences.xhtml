@@ -1,30 +1,45 @@
 <linkset>
   <html:link rel="localization" href="__addonRef__-preferences.ftl" />
 </linkset>
+
+<!-- Local styles to align fields vertically and tidy inputs -->
+<html:style>
+  #__addonRef__-prefs .pref-row { margin: 6px 0; } #__addonRef__-prefs
+  .pref-label { width: 160px; display: inline-block; } #__addonRef__-prefs
+  input.pref-number { width: 120px; padding: 2px 6px; } #__addonRef__-prefs
+  input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+</html:style>
 <groupbox
+  id="__addonRef__-prefs"
   onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', { window });"
 >
-  <!-- Only keep essential popup sizing preferences -->
-  <hbox>
+  <!-- Only keep essential popup sizing preferences (vertical layout) -->
+  <hbox class="pref-row" align="center">
     <html:label
+      class="pref-label"
       for="zotero-prefpane-__addonRef__-popupWidth"
       data-l10n-id="pref-popup-width"
     ></html:label>
     <html:input
+      class="pref-number"
       type="number"
       min="120"
+      step="10"
       id="zotero-prefpane-__addonRef__-popupWidth"
       preference="popupWidth"
     ></html:input>
   </hbox>
-  <hbox>
+  <hbox class="pref-row" align="center">
     <html:label
+      class="pref-label"
       for="zotero-prefpane-__addonRef__-popupHeight"
       data-l10n-id="pref-popup-height"
     ></html:label>
     <html:input
+      class="pref-number"
       type="number"
       min="120"
+      step="10"
       id="zotero-prefpane-__addonRef__-popupHeight"
       preference="popupHeight"
     ></html:input>
@@ -34,6 +49,6 @@
 <vbox>
   <html:label
     data-l10n-id="pref-help"
-    data-l10n-args='{"time": "__buildTime__","name": "__addonName__","version":"__buildVersion__"}'
+    data-l10n-args='{"name": "__addonName__","version":"__buildVersion__"}'
   ></html:label>
 </vbox>
