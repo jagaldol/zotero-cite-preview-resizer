@@ -1,3 +1,3 @@
 // Popup sizing (in CSS pixels)
-pref("popupWidth", 480);
-pref("popupHeight", 320);
+pref("popupWidth", 800);
+pref("popupHeight", 500);

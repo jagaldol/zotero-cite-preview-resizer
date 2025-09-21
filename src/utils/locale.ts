@@ -1,7 +1,7 @@
 import { config } from "../../package.json";
 import { FluentMessageId } from "../../typings/i10n";
 
-export { initLocale, getString, getLocaleID };
+export { initLocale, getString };
 
 /**
  * Initialize locale data
@@ -11,10 +11,7 @@ function initLocale() {
     typeof Localization === "undefined"
       ? ztoolkit.getGlobal("Localization")
       : Localization
-  )(
-    [`${config.addonRef}-addon.ftl`, `${config.addonRef}-preferences.ftl`],
-    true,
-  );
+  )([`${config.addonRef}-preferences.ftl`], true);
   addon.data.locale = {
     current: l10n,
   };
@@ -87,6 +84,4 @@ function _getString(
   }
 }
 
-function getLocaleID(id: FluentMessageId) {
-  return `${config.addonRef}-${id}`;
-}
+// getLocaleID removed: preference strings only
