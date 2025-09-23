@@ -4,10 +4,16 @@
 
 <!-- Local styles to align fields vertically and tidy inputs -->
 <html:style>
-  #__addonRef__-prefs .pref-row { margin: 6px 0; } #__addonRef__-prefs
-  .pref-label { width: 160px; display: inline-block; } #__addonRef__-prefs
-  input.pref-number { width: 120px; padding: 2px 6px; } #__addonRef__-prefs
-  input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+  #__addonRef__-prefs .pref-row { margin: 6px 0; }
+  #__addonRef__-prefs .pref-label { width: 160px; display: inline-block; }
+  #__addonRef__-prefs input.pref-number { width: 120px; padding: 2px 6px; }
+  #__addonRef__-prefs input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+  /* Footer spacing and adaptive color */
+  #__addonRef__-prefs .footer-row { margin-top: 14px; }
+  #__addonRef__-prefs .pref-footer { color: #666; font-size: 0.9em; }
+  @media (prefers-color-scheme: dark) {
+    #__addonRef__-prefs .pref-footer { color: #9aa0a6; }
+  }
 </html:style>
 <groupbox
   id="__addonRef__-prefs"
@@ -45,4 +51,11 @@
     ></html:input>
   </hbox>
   <!-- Minimal preferences: table removed -->
+  <hbox class="pref-row footer-row" align="center">
+    <html:label
+      class="pref-footer"
+      data-l10n-id="pref-footer"
+      data-l10n-args='{"name": "__addonName__","version":"__buildVersion__", "author":"__author__"}'
+    ></html:label>
+  </hbox>
 </groupbox>
