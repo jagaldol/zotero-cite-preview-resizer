@@ -6,6 +6,7 @@ export type FluentMessageId =
   | 'pref-disable-preview'
   | 'pref-footer'
   | 'pref-lock-popup-size'
+  | 'pref-lock-popup-size-description'
   | 'pref-popup-height'
   | 'pref-popup-width'
   | 'pref-title';

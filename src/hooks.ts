@@ -18,6 +18,7 @@ async function onStartup() {
   Zotero.PreferencePanes.register({
     pluginID: addon.data.config.addonID,
     src: rootURI + "content/preferences.xhtml",
+    scripts: [rootURI + "content/preferences.js"],
     // Use localized title for the pane label
     label: getString("pref-title"),
     image: `chrome://${addon.data.config.addonRef}/content/icons/favicon.png`,

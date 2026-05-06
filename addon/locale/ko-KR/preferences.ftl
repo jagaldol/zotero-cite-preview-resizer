@@ -1,8 +1,11 @@
 pref-title = Preview Resizer
 pref-disable-preview =
     .label = 미리보기 팝업 비활성화
+    .tooltiptext = 인용 미리보기 팝업을 크기 조절하지 않고 숨깁니다.
 pref-lock-popup-size =
-    .label = 팝업 크기 고정
+    .label = 설정한 팝업 크기 고정
+    .tooltiptext = 켜면 팝업을 손으로 조절해도 현재 팝업에만 적용되고 저장된 너비와 높이는 바뀌지 않습니다.
+pref-lock-popup-size-description = 꺼짐: 팝업 모서리를 드래그해 조절한 크기가 아래 너비와 높이에 자동 저장됩니다. 켜짐: 설정값이 고정됩니다.
 pref-popup-width = 팝업 너비 (px)
 pref-popup-height = 팝업 높이 (px)
 pref-footer = { $name } v{ $version } — { $author } 제작
