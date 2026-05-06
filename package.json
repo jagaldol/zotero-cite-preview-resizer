@@ -1,7 +1,7 @@
 {
   "name": "zotero-cite-preview-resizer",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Resize Zotero cite/preview popups with drag and prefs",
   "config": {
     "addonName": "Zotero Cite Preview Resizer",
