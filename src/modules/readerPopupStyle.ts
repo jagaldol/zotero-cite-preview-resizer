@@ -41,18 +41,50 @@ const POPUP_CSS = `
   display: block;
 }
 
-.view-popup.preview-popup > img,
-.view-popup.preview-popup > picture,
-.view-popup.preview-popup > canvas,
-.view-popup.preview-popup > svg,
-.view-popup.preview-popup .inner > img,
-.view-popup.preview-popup .inner > picture,
-.view-popup.preview-popup .inner > canvas,
-.view-popup.preview-popup .inner > svg {
+.view-popup.preview-popup .inner > * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.view-popup.preview-popup figure {
+  max-width: 100%;
+  margin: 0;
+}
+
+.view-popup.preview-popup img,
+.view-popup.preview-popup picture,
+.view-popup.preview-popup canvas,
+.view-popup.preview-popup svg,
+.view-popup.preview-popup video {
   width: 100% !important;
   height: auto !important;
   max-width: 100% !important;
   display: block;
+}
+
+.view-popup.preview-popup iframe,
+.view-popup.preview-popup object,
+.view-popup.preview-popup embed {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: none !important;
+  border: 0;
+  border-radius: inherit;
+  flex: 1 1 auto;
+}
+
+.view-popup.preview-popup table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+}
+
+.view-popup.preview-popup pre,
+.view-popup.preview-popup code {
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 `;
 
