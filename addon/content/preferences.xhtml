@@ -6,19 +6,36 @@
 <html:style>
   #__addonRef__-prefs .pref-row { margin: 6px 0; } #__addonRef__-prefs
   .pref-label { width: 160px; display: inline-block; } #__addonRef__-prefs
-  input.pref-number { width: 120px; padding: 2px 6px; } #__addonRef__-prefs
-  input[type="number"] { -moz-appearance: textfield; appearance: textfield; } /*
-  Footer spacing and adaptive color */ #__addonRef__-prefs .footer-row {
-  margin-top: 14px; } #__addonRef__-prefs .pref-footer { color: #666; font-size:
-  0.9em; } @media (prefers-color-scheme: dark) { #__addonRef__-prefs
-  .pref-footer { color: #9aa0a6; } }
+  .pref-help { color: #666; font-size: 0.9em; line-height: 1.35; margin: -2px 0
+  8px 28px; max-width: 420px; } #__addonRef__-prefs input.pref-number { width:
+  120px; padding: 2px 6px; } #__addonRef__-prefs input[type="number"] {
+  -moz-appearance: textfield; appearance: textfield; } /* Footer spacing and
+  adaptive color */ #__addonRef__-prefs .footer-row { margin-top: 14px; }
+  #__addonRef__-prefs[data-preview-disabled="true"] .size-pref { opacity: 0.55;
+  } #__addonRef__-prefs .pref-footer { color: #666; font-size: 0.9em; } @media
+  (prefers-color-scheme: dark) { #__addonRef__-prefs .pref-help,
+  #__addonRef__-prefs .pref-footer { color: #9aa0a6; } }
 </html:style>
-<groupbox
-  id="__addonRef__-prefs"
-  onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', { window })"
->
-  <!-- Only keep essential popup sizing preferences (vertical layout) -->
-  <hbox class="pref-row" align="center">
+<groupbox id="__addonRef__-prefs">
+  <!-- Only keep essential popup preferences (vertical layout) -->
+  <checkbox
+    id="zotero-prefpane-__addonRef__-disablePreview"
+    data-l10n-id="pref-disable-preview"
+    preference="disablePreview"
+    native="true"
+  />
+  <checkbox
+    id="zotero-prefpane-__addonRef__-lockPopupSize"
+    class="size-pref"
+    data-l10n-id="pref-lock-popup-size"
+    preference="lockPopupSize"
+    native="true"
+  />
+  <description
+    class="pref-help size-pref"
+    data-l10n-id="pref-lock-popup-size-description"
+  />
+  <hbox class="pref-row size-pref" align="center">
     <html:label
       class="pref-label"
       for="zotero-prefpane-__addonRef__-popupWidth"
@@ -27,13 +44,13 @@
     <html:input
       class="pref-number"
       type="number"
-      min="120"
+      min="240"
       step="10"
       id="zotero-prefpane-__addonRef__-popupWidth"
       preference="popupWidth"
     ></html:input>
   </hbox>
-  <hbox class="pref-row" align="center">
+  <hbox class="pref-row size-pref" align="center">
     <html:label
       class="pref-label"
       for="zotero-prefpane-__addonRef__-popupHeight"

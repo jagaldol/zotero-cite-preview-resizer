@@ -1,4 +1,11 @@
 pref-title = Preview Resizer
+pref-disable-preview =
+    .label = Disable preview popups
+    .tooltiptext = Hide citation preview popups instead of resizing them.
+pref-lock-popup-size =
+    .label = Keep configured popup size fixed
+    .tooltiptext = When enabled, manual resizing only changes the current popup and will not update the saved width and height.
+pref-lock-popup-size-description = Off: dragging a popup corner updates the width and height below. On: those settings stay fixed.
 pref-popup-width = Popup width (px)
 pref-popup-height = Popup height (px)
 pref-footer = { $name } v{ $version } — made by { $author }
