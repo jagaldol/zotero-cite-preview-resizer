@@ -1,10 +1,11 @@
 import { config } from "../../package.json";
-import { getPref } from "../utils/prefs";
+import { getPref, setPref } from "../utils/prefs";
 
 type PluginPrefKey = Parameters<typeof getPref>[0];
 
 const POPUP_PREF_KEYS: PluginPrefKey[] = [
   "disablePreview",
+  "lockPopupSize",
   "popupWidth",
   "popupHeight",
 ];
@@ -15,6 +16,22 @@ const MIN_POPUP_HEIGHT = 120;
 const STYLE_ID = "__addon_popup_style";
 const DISABLE_PREVIEW_ATTR = "data-addon-disable-preview";
 const MANAGED_POPUP_ATTR = "data-addon-popup-sized";
+const RESIZE_HANDLE_HITBOX = 18;
+const SIZE_CHANGE_TOLERANCE = 2;
+
+type PendingPopupResize = {
+  popup: HTMLElement;
+  width: number;
+  height: number;
+};
+
+type PopupWatcher = {
+  observer: MutationObserver;
+  pendingResize?: PendingPopupResize;
+  onMouseDown: (event: MouseEvent) => void;
+  onMouseUp: () => void;
+  onBlur: () => void;
+};
 
 const POPUP_CSS = `
 :root[${DISABLE_PREVIEW_ATTR}="true"] .view-popup.preview-popup {
@@ -93,7 +110,7 @@ const POPUP_CSS = `
 `;
 
 const readerDocs = new Set<Document>();
-const popupObservers = new Map<Document, MutationObserver>();
+const popupWatchers = new Map<Document, PopupWatcher>();
 const prefObserverIDs: symbol[] = [];
 let readerToolbarHandler:
   | _ZoteroTypes.Reader.EventHandler<"renderToolbar">
@@ -140,10 +157,10 @@ export function unregisterReaderPopupStyle() {
     readerToolbarHandler = undefined;
   }
 
-  for (const observer of popupObservers.values()) {
-    observer.disconnect();
+  for (const [doc, watcher] of popupWatchers) {
+    unregisterPopupWatcher(doc, watcher);
   }
-  popupObservers.clear();
+  popupWatchers.clear();
   readerDocs.clear();
 }
 
@@ -220,22 +237,144 @@ function observePopupChanges(doc: Document) {
   const root = doc.documentElement;
   const win = doc.defaultView;
 
-  if (!root || !win || popupObservers.has(doc)) {
+  if (!root || !win || popupWatchers.has(doc)) {
     return;
   }
 
-  const observer = new win.MutationObserver((mutations: MutationRecord[]) => {
-    for (const mutation of mutations) {
-      for (const node of Array.from(mutation.addedNodes) as Node[]) {
-        if (node.nodeType === 1 && containsPreviewPopup(node as Element)) {
-          syncPopupElements(doc, false);
-          return;
+  const watcher: PopupWatcher = {
+    observer: new win.MutationObserver((mutations: MutationRecord[]) => {
+      for (const mutation of mutations) {
+        for (const node of Array.from(mutation.addedNodes) as Node[]) {
+          if (node.nodeType === 1 && containsPreviewPopup(node as Element)) {
+            syncPopupElements(doc, false);
+            return;
+          }
         }
       }
-    }
-  });
-  observer.observe(root, { childList: true, subtree: true });
-  popupObservers.set(doc, observer);
+    }),
+    onMouseDown: (event: MouseEvent) => {
+      if (event.button !== 0) {
+        return;
+      }
+
+      const popup = findTargetPreviewPopup(win, event.target);
+      if (!popup || !isNearResizeHandle(popup, event)) {
+        return;
+      }
+
+      const { width, height } = readElementDimensions(popup);
+      watcher.pendingResize = { popup, width, height };
+    },
+    onMouseUp: () => {
+      const pendingResize = watcher.pendingResize;
+      watcher.pendingResize = undefined;
+
+      if (!pendingResize || getPref("lockPopupSize")) {
+        return;
+      }
+
+      persistPopupDimensionsIfChanged(pendingResize);
+    },
+    onBlur: () => {
+      watcher.pendingResize = undefined;
+    },
+  };
+
+  watcher.observer.observe(root, { childList: true, subtree: true });
+  doc.addEventListener("mousedown", watcher.onMouseDown, true);
+  win.addEventListener("mouseup", watcher.onMouseUp, true);
+  win.addEventListener("blur", watcher.onBlur, true);
+  popupWatchers.set(doc, watcher);
+}
+
+function unregisterPopupWatcher(doc: Document, watcher: PopupWatcher) {
+  watcher.observer.disconnect();
+  doc.removeEventListener("mousedown", watcher.onMouseDown, true);
+  doc.defaultView?.removeEventListener("mouseup", watcher.onMouseUp, true);
+  doc.defaultView?.removeEventListener("blur", watcher.onBlur, true);
+}
+
+function findTargetPreviewPopup(win: Window, target: EventTarget | null) {
+  if (!target || !(target instanceof win.Element)) {
+    return undefined;
+  }
+
+  const targetElement = target as Element;
+  return targetElement.closest(
+    ".view-popup.preview-popup",
+  ) as HTMLElement | null;
+}
+
+function readElementDimensions(element: HTMLElement) {
+  const rect = element.getBoundingClientRect();
+  return {
+    width: Math.round(rect.width),
+    height: Math.round(rect.height),
+  };
+}
+
+function isNearResizeHandle(popup: HTMLElement, event: MouseEvent) {
+  const rect = popup.getBoundingClientRect();
+  const win = popup.ownerDocument?.defaultView;
+  let isRTL = false;
+
+  if (win) {
+    isRTL = win.getComputedStyle(popup)?.direction === "rtl";
+  }
+  const nearInlineEnd = isRTL
+    ? event.clientX >= rect.left &&
+      event.clientX <= rect.left + RESIZE_HANDLE_HITBOX
+    : event.clientX <= rect.right &&
+      event.clientX >= rect.right - RESIZE_HANDLE_HITBOX;
+  const nearBlockEnd =
+    event.clientY <= rect.bottom &&
+    event.clientY >= rect.bottom - RESIZE_HANDLE_HITBOX;
+
+  return nearInlineEnd && nearBlockEnd;
+}
+
+function persistPopupDimensionsIfChanged(pendingResize: PendingPopupResize) {
+  const { popup, width: startWidth, height: startHeight } = pendingResize;
+  if (!popup.isConnected) {
+    return;
+  }
+
+  const { width: currentWidth, height: currentHeight } =
+    readElementDimensions(popup);
+  if (
+    Math.abs(currentWidth - startWidth) < SIZE_CHANGE_TOLERANCE &&
+    Math.abs(currentHeight - startHeight) < SIZE_CHANGE_TOLERANCE
+  ) {
+    return;
+  }
+
+  const width = clampPopupWidth(currentWidth);
+  const height = clampPopupHeight(currentHeight);
+  const dimensions = getPopupDimensions();
+
+  if (width !== dimensions.width) {
+    setPref("popupWidth", width);
+  }
+
+  if (height !== dimensions.height) {
+    setPref("popupHeight", height);
+  }
+}
+
+function clampPopupWidth(width: number) {
+  if (!Number.isFinite(width)) {
+    return DEFAULT_POPUP_WIDTH;
+  }
+
+  return Math.max(MIN_POPUP_WIDTH, width);
+}
+
+function clampPopupHeight(height: number) {
+  if (!Number.isFinite(height)) {
+    return DEFAULT_POPUP_HEIGHT;
+  }
+
+  return Math.max(MIN_POPUP_HEIGHT, height);
 }
 
 function syncPopupElements(doc: Document, force: boolean) {
@@ -266,8 +405,11 @@ function containsPreviewPopup(node: Element) {
 }
 
 function forgetReaderDoc(doc: Document) {
-  popupObservers.get(doc)?.disconnect();
-  popupObservers.delete(doc);
+  const watcher = popupWatchers.get(doc);
+  if (watcher) {
+    unregisterPopupWatcher(doc, watcher);
+  }
+  popupWatchers.delete(doc);
   readerDocs.delete(doc);
 }
 

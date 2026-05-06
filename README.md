@@ -9,10 +9,10 @@ Resize the hover preview that appears when you inspect citations inside the Zote
 ## Features
 
 - Enlarged cite/annotation preview popups (default 800 x 500 px) so reference pages and figures are legible at a glance.
-- Drag-resizable preview window with sensible min/max limits and scrollbars for oversized content.
+- Drag-resizable preview window that can remember manual sizes, with sensible min/max limits and scrollbars for oversized content.
 - Option to hide preview popups entirely.
 - Applies to every Zotero Reader tab (PDF, EPUB, snapshots) and updates automatically when new reader windows open.
-- Preferences pane to hide previews or set your own default width and height.
+- Preferences pane to hide previews, lock the configured size, or set your own default width and height.
 - Media-aware styling that keeps embedded images, figures, and SVGs stretched to the popup width without distortion.
 - English and Korean localization out of the box.
 
@@ -37,18 +37,19 @@ The add-on targets Zotero 7 (Beta or newer). Earlier Zotero versions do not expo
 
 1. Open a PDF (or other reader-supported item) inside Zotero.
 2. Hover over an in-text citation, note link, or reference marker to display the preview popup.
-3. Drag the lower-right corner to resize; the popup remembers the size for that session and stays within 95% of the reader viewport.
-4. To make the larger size the default, adjust the preferences described below.
+3. Drag the lower-right corner to resize; the popup stores the new size as the default unless popup size is locked.
+4. To force a fixed default, enable the lock preference described below.
 
 ## Preferences
 
 Find the "Preview Resizer" pane under `Edit > Preferences` (Windows/Linux) or `Zotero > Preferences` (macOS).
 
-![Preview Resizer preference pane with disable preview, width, and height fields](assets/preferences.png)
+![Preview Resizer preference pane with disable preview, lock popup size, width, and height fields](assets/preferences.png)
 
 - **Popup width (px):** Starting width for every preview popup.
 - **Popup height (px):** Starting height for every preview popup.
 - **Disable preview popups:** Hide citation preview popups.
+- **Lock popup size:** Keep the configured width and height from being overwritten by manual drag-resizing.
 
 Changes apply to open reader tabs and future previews. You can still resize individual popups on the fly with drag-and-drop.
 
