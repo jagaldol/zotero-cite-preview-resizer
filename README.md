@@ -10,8 +10,9 @@ Resize the hover preview that appears when you inspect citations inside the Zote
 
 - Enlarged cite/annotation preview popups (default 800 x 500 px) so reference pages and figures are legible at a glance.
 - Drag-resizable preview window with sensible min/max limits and scrollbars for oversized content.
+- Option to hide preview popups entirely.
 - Applies to every Zotero Reader tab (PDF, EPUB, snapshots) and updates automatically when new reader windows open.
-- Preferences pane to set your own default width and height, applied instantly the next time a popup opens.
+- Preferences pane to hide previews or set your own default width and height.
 - Media-aware styling that keeps embedded images, figures, and SVGs stretched to the popup width without distortion.
 - English and Korean localization out of the box.
 
@@ -43,12 +44,13 @@ The add-on targets Zotero 7 (Beta or newer). Earlier Zotero versions do not expo
 
 Find the "Preview Resizer" pane under `Edit > Preferences` (Windows/Linux) or `Zotero > Preferences` (macOS).
 
-![Preview Resizer preference pane with width and height fields](assets/preferences.png)
+![Preview Resizer preference pane with disable preview, width, and height fields](assets/preferences.png)
 
 - **Popup width (px):** Starting width for every preview popup.
 - **Popup height (px):** Starting height for every preview popup.
+- **Disable preview popups:** Hide citation preview popups.
 
-Changes take effect the next time you open a preview. You can still resize individual popups on the fly with drag-and-drop.
+Changes apply to open reader tabs and future previews. You can still resize individual popups on the fly with drag-and-drop.
 
 ## Development
 

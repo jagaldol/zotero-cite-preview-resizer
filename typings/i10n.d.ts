@@ -3,6 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 export type FluentMessageId =
+  | 'pref-disable-preview'
   | 'pref-footer'
   | 'pref-popup-height'
   | 'pref-popup-width'

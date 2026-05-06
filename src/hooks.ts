@@ -2,37 +2,31 @@ import { registerPrefsScripts } from "./modules/preferenceScript";
 import { getPref } from "./utils/prefs";
 import { initLocale, getString } from "./utils/locale";
 
-async function onStartup() {
-  await Promise.all([
-    Zotero.initializationPromise,
-    Zotero.unlockPromise,
-    Zotero.uiReadyPromise,
-  ]);
+type PluginPrefKey = Parameters<typeof getPref>[0];
 
-  // Initialize localization before using getString
-  initLocale();
+const POPUP_PREF_KEYS: PluginPrefKey[] = [
+  "disablePreview",
+  "popupWidth",
+  "popupHeight",
+];
+const readerDocs = new Set<Document>();
+const prefObserverIDs: symbol[] = [];
+let readerToolbarHandler:
+  | _ZoteroTypes.Reader.EventHandler<"renderToolbar">
+  | undefined;
 
-  // Register a minimal Preferences pane without using examples
-  Zotero.PreferencePanes.register({
-    pluginID: addon.data.config.addonID,
-    src: rootURI + "content/preferences.xhtml",
-    // Use localized title for the pane label
-    label: getString("pref-title"),
-    image: `chrome://${addon.data.config.addonRef}/content/icons/favicon.png`,
-  });
-
-  await Promise.all(
-    Zotero.getMainWindows().map((win) => onMainWindowLoad(win)),
-  );
-
-  // Inject sizing into Reader documents when available
-  try {
-    const injectIntoReader = (doc: Document) => {
-      const width = getPref("popupWidth");
-      const height = getPref("popupHeight");
-      const styleId = "__addon_popup_style";
-      let style = doc.getElementById(styleId) as HTMLStyleElement | null;
-      const css = `
+function applyPopupStyle(doc: Document) {
+  const disablePreview = getPref("disablePreview");
+  const width = getPref("popupWidth");
+  const height = getPref("popupHeight");
+  const styleId = "__addon_popup_style";
+  let style = doc.getElementById(styleId) as HTMLStyleElement | null;
+  const css = disablePreview
+    ? `
+        .view-popup.preview-popup {\n\
+          display: none !important;\n\
+        }`
+    : `
         /* Resizable popup container: start from prefs, allow drag-resize */\n\
         .view-popup.preview-popup {\n\
           width: var(--addon-popup-width, ${width}px);\n\
@@ -71,27 +65,88 @@ async function onStartup() {
           max-width: 100% !important;\n\
           display: block;\n\
         }`;
-      if (!style) {
-        style = doc.createElement("style");
-        style.id = styleId;
-        style.textContent = css;
-        doc.documentElement?.appendChild(style);
-      } else if (style.textContent !== css) {
-        style.textContent = css;
-      }
-      // Apply CSS variables to the reader document element
-      const rootEl = doc.documentElement as HTMLElement | null;
-      rootEl?.style.setProperty("--addon-popup-width", `${width}px`);
-      rootEl?.style.setProperty("--addon-popup-height", `${height}px`);
-    };
+  if (!style) {
+    style = doc.createElement("style");
+    style.id = styleId;
+    style.textContent = css;
+    doc.documentElement?.appendChild(style);
+  } else if (style.textContent !== css) {
+    style.textContent = css;
+  }
+  // Apply CSS variables to the reader document element
+  const rootEl = doc.documentElement as HTMLElement | null;
+  rootEl?.style.setProperty("--addon-popup-width", `${width}px`);
+  rootEl?.style.setProperty("--addon-popup-height", `${height}px`);
+}
 
+function refreshReaderDocs() {
+  for (const doc of Array.from(readerDocs)) {
+    try {
+      if (!doc.documentElement) {
+        readerDocs.delete(doc);
+        continue;
+      }
+      applyPopupStyle(doc);
+    } catch (e) {
+      readerDocs.delete(doc);
+      Zotero.debug?.(`Failed to refresh popup style: ${e}`);
+    }
+  }
+}
+
+function registerPopupPrefObservers() {
+  if (prefObserverIDs.length) {
+    return;
+  }
+
+  for (const key of POPUP_PREF_KEYS) {
+    prefObserverIDs.push(
+      Zotero.Prefs.registerObserver(
+        `${addon.data.config.prefsPrefix}.${key}`,
+        refreshReaderDocs,
+        true,
+      ),
+    );
+  }
+}
+
+async function onStartup() {
+  await Promise.all([
+    Zotero.initializationPromise,
+    Zotero.unlockPromise,
+    Zotero.uiReadyPromise,
+  ]);
+
+  // Initialize localization before using getString
+  initLocale();
+
+  // Register a minimal Preferences pane without using examples
+  Zotero.PreferencePanes.register({
+    pluginID: addon.data.config.addonID,
+    src: rootURI + "content/preferences.xhtml",
+    // Use localized title for the pane label
+    label: getString("pref-title"),
+    image: `chrome://${addon.data.config.addonRef}/content/icons/favicon.png`,
+  });
+
+  await Promise.all(
+    Zotero.getMainWindows().map((win) => onMainWindowLoad(win)),
+  );
+
+  // Inject sizing into Reader documents when available
+  try {
     // Use Reader event to gain access to the reader's document
     // RenderToolbar fires reliably for PDF/EPUB/Snapshot
+    readerToolbarHandler = ({ doc }) => {
+      readerDocs.add(doc);
+      applyPopupStyle(doc);
+    };
     Zotero.Reader.registerEventListener(
       "renderToolbar",
-      ({ doc }) => injectIntoReader(doc),
+      readerToolbarHandler,
       addon.data.config.addonID,
     );
+    registerPopupPrefObservers();
   } catch (e) {
     Zotero.debug?.(`Failed to register Reader injector: ${e}`);
   }
@@ -116,6 +171,18 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
 }
 
 function onShutdown(): void {
+  for (const id of prefObserverIDs.splice(0)) {
+    Zotero.Prefs.unregisterObserver(id);
+  }
+  if (readerToolbarHandler) {
+    Zotero.Reader.unregisterEventListener(
+      "renderToolbar",
+      readerToolbarHandler,
+    );
+    readerToolbarHandler = undefined;
+  }
+  readerDocs.clear();
+
   // Remove addon object
   addon.data.alive = false;
   // @ts-expect-error - Plugin instance is not typed

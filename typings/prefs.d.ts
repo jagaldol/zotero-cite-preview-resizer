@@ -7,6 +7,7 @@
 declare namespace _ZoteroTypes {
   interface Prefs {
     PluginPrefsMap: {
+      "disablePreview": boolean;
       "popupWidth": number;
       "popupHeight": number;
     };
