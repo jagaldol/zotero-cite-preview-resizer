@@ -8,6 +8,10 @@ const POPUP_PREF_KEYS: PluginPrefKey[] = [
   "popupWidth",
   "popupHeight",
 ];
+const DEFAULT_POPUP_WIDTH = 800;
+const DEFAULT_POPUP_HEIGHT = 500;
+const MIN_POPUP_WIDTH = 240;
+const MIN_POPUP_HEIGHT = 120;
 const STYLE_ID = "__addon_popup_style";
 const DISABLE_PREVIEW_ATTR = "data-addon-disable-preview";
 const MANAGED_POPUP_ATTR = "data-addon-popup-sized";
@@ -18,13 +22,13 @@ const POPUP_CSS = `
 }
 
 .view-popup.preview-popup {
-  width: var(--addon-popup-width, 800px);
-  height: var(--addon-popup-height, 500px);
+  width: var(--addon-popup-width, ${DEFAULT_POPUP_WIDTH}px);
+  height: var(--addon-popup-height, ${DEFAULT_POPUP_HEIGHT}px);
   resize: both;
   max-width: 95vw;
   max-height: 95vh;
-  min-width: 240px;
-  min-height: 120px;
+  min-width: ${MIN_POPUP_WIDTH}px;
+  min-height: ${MIN_POPUP_HEIGHT}px;
   padding: 0;
   overflow: auto;
   box-sizing: border-box;
@@ -169,8 +173,10 @@ function applyPopupPrefs(doc: Document) {
 
   ensurePopupStyle(doc);
   observePopupChanges(doc);
-  root.style.setProperty("--addon-popup-width", `${getPref("popupWidth")}px`);
-  root.style.setProperty("--addon-popup-height", `${getPref("popupHeight")}px`);
+
+  const { width, height } = getPopupDimensions();
+  root.style.setProperty("--addon-popup-width", `${width}px`);
+  root.style.setProperty("--addon-popup-height", `${height}px`);
 
   if (getPref("disablePreview")) {
     root.setAttribute(DISABLE_PREVIEW_ATTR, "true");
@@ -233,8 +239,9 @@ function observePopupChanges(doc: Document) {
 }
 
 function syncPopupElements(doc: Document, force: boolean) {
-  const width = `${getPref("popupWidth")}px`;
-  const height = `${getPref("popupHeight")}px`;
+  const dimensions = getPopupDimensions();
+  const width = `${dimensions.width}px`;
+  const height = `${dimensions.height}px`;
 
   const popups = Array.from(
     doc.querySelectorAll(".view-popup.preview-popup"),
@@ -262,4 +269,27 @@ function forgetReaderDoc(doc: Document) {
   popupObservers.get(doc)?.disconnect();
   popupObservers.delete(doc);
   readerDocs.delete(doc);
+}
+
+function getPopupDimensions() {
+  return {
+    width: readNumberPref("popupWidth", DEFAULT_POPUP_WIDTH, MIN_POPUP_WIDTH),
+    height: readNumberPref(
+      "popupHeight",
+      DEFAULT_POPUP_HEIGHT,
+      MIN_POPUP_HEIGHT,
+    ),
+  };
+}
+
+function readNumberPref(
+  key: Extract<PluginPrefKey, "popupWidth" | "popupHeight">,
+  fallback: number,
+  min: number,
+) {
+  const value = Number(getPref(key));
+  if (!Number.isFinite(value)) {
+    return fallback;
+  }
+  return Math.max(min, value);
 }
