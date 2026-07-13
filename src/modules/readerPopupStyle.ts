@@ -113,8 +113,7 @@ const readerDocs = new Set<Document>();
 const popupWatchers = new Map<Document, PopupWatcher>();
 const prefObserverIDs: symbol[] = [];
 let readerToolbarHandler:
-  | _ZoteroTypes.Reader.EventHandler<"renderToolbar">
-  | undefined;
+  _ZoteroTypes.Reader.EventHandler<"renderToolbar"> | undefined;
 
 export function registerReaderPopupStyle() {
   if (!readerToolbarHandler) {
