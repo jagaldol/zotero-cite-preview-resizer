@@ -61,6 +61,8 @@
     ]
   },
   "overrides": {
+    "adm-zip": "0.6.0",
+    "diff": "9.0.0",
     "serialize-javascript": "7.0.5"
   }
 }
